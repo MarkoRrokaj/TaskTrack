@@ -15,5 +15,6 @@ body {
     justify-content: center;
     align-items: center;
     min-height: 100vh;
-    background: url('./src/assets/bg-b1.png') no-repeat;
+    /* background: url('./src/assets/bg-b1.png') no-repeat; */
+    background: #001e2b;
 }
