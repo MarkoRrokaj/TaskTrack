@@ -1,39 +1,65 @@
 import "./LoginForm.css";
 import { useState, FormEvent } from "react";
-import { useNavigate } from "react-router-dom"; // Updated to ensure correct import for React Router
+import { useNavigate } from "react-router-dom";
 import { FaUser, FaLock } from "react-icons/fa";
-import axios from "axios";
+import axios, { AxiosResponse } from "axios"; // Corrected import
 
 const LoginForm: React.FC = () => {
   const [email, setEmail] = useState<string>("");
   const [password, setPassword] = useState<string>("");
-  const navigate = useNavigate(); // Ensure to use the navigate function from useNavigate
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  const navigate = useNavigate();
+
+  const handleLogin = async (e: FormEvent<HTMLFormElement>): Promise<void> => {
     e.preventDefault();
+
     try {
-      const result = await axios.post("http://localhost:5173/login", {
-        email,
-        password,
-      });
-      if (result.data === "Success") {
-        navigate("/home");
+      const result: AxiosResponse = await axios.post(
+        "http://localhost:3001/login",
+        {
+          email,
+          password,
+        }
+      );
+
+      // Handle different status codes
+      switch (result.status) {
+        case 200:
+          console.log(`${email} - Logged in`);
+          navigate("/home"); // Success - navigate to home
+          break;
+        case 401:
+          console.error(result.data.message); // Incorrect password
+          break;
+        case 404:
+          console.error(result.data.message); // No record found
+          break;
+        default:
+          console.error("Unexpected response:", result.data.message); // Handle unexpected responses
       }
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      // Handle error if request fails (like server errors)
+      if (err.response) {
+        console.error(
+          "Server error:",
+          err.response.data.message || err.response.statusText
+        );
+      } else {
+        console.error("Request error:", err.message);
+      }
     }
   };
 
   return (
     <div className="wrapper">
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleLogin}>
         <h1>Login</h1>
         <div className="input-box">
           <input
             type="text"
-            placeholder="Username"
+            placeholder="Email"
             required
-            value={email} // Assuming username is actually the email
-            onChange={(e) => setEmail(e.target.value)} // Capture input for email
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
           />
           <FaUser className="icon" />
         </div>
@@ -43,7 +69,7 @@ const LoginForm: React.FC = () => {
             placeholder="Password"
             required
             value={password}
-            onChange={(e) => setPassword(e.target.value)} // Capture input for password
+            onChange={(e) => setPassword(e.target.value)}
           />
           <FaLock className="icon" />
         </div>
